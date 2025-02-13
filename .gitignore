@@ -21,3 +21,4 @@ c/secp256k1-zkp/src/*.o
 c/secp256k1-zkp/*.o
 c/secp256k1-zkp/libsecp256k1*
 c/secp256k1-zkp/src/libsecp256k1-config.h*
+.obj/*
