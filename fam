@@ -1,0 +1,7 @@
+. scripts/parse_params.sh || exit 1;
+if [ "$clean" = "1" ]; then
+        cd c/secp256k1-zkp
+        make clean
+        cd ..
+        rm -rf .obj/* libtest.a bin/* rust/test_deps/*/target
+fi
