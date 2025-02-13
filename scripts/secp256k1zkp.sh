@@ -12,5 +12,5 @@ if [ ! -f "./configure" ]; then
 		--enable-module-commitment || exit 1;
 fi
 make || exit 1;
-cp .libs/libsecp256k1.a ../.obj
+cp .libs/libsecp256k1.a ../../.obj
 cd ../..
