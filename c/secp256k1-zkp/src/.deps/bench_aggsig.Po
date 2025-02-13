@@ -1,0 +1,1 @@
+src/bench_aggsig.o: src/bench_aggsig.c
