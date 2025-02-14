@@ -30,3 +30,4 @@ c/secp256k1-zkp/Makefile.in
 c/secp256k1-zkp/aclocal.m4
 c/secp256k1-zkp/libtool
 c/secp256k1-zkp/autom4te.cache/*
+c/secp256k1-zkp/libsecp256k1.pc
