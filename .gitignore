@@ -40,3 +40,4 @@ c/secp256k1-zkp/build-aux/m4/*
 c/secp256k1-zkp/build-aux/missing
 c/secp256k1-zkp/build-aux/test-driver
 bin/*
+**/*.swp
