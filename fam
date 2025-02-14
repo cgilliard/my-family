@@ -2,7 +2,7 @@
 if [ "$clean" = "1" ]; then
         cd c/secp256k1-zkp
         make clean
-        cd ..
+	cd ../..
         rm -rf .obj/* libtest.a bin/* rust/test_deps/*/target
 elif [ "$all" = "1" ]; then
 	./scripts/secp256k1zkp.sh
