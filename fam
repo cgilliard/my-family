@@ -1,11 +1,45 @@
 #!/bin/sh
 
+cc=clang
+
 . scripts/parse_params.sh || exit 1;
+
 if [ "$clean" = "1" ]; then
         cd c/secp256k1-zkp
         make clean
 	cd ../..
         rm -rf .obj/* libtest.a bin/* rust/test_deps/*/target
 elif [ "$all" = "1" ]; then
-	./scripts/secp256k1zkp.sh
+	ccflags=-O3
+	./scripts/secp256k1zkp.sh || exit 1;
+	cd c
+	for file in *.c
+	do
+		if [ ! -e ../.obj/${file%.c}.o ] || [ ${file} -nt ../.obj/${file%.c}.o ]; then
+			echo "${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -Ic ${file}";
+			${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -Ic ${file} || exit 1;
+		fi
+	done
+	cd ..
+	if [ "$usemrustc" = "1" ]; then
+		echo "${mrustc} --crate-type=lib rust/mod.rs -L${output} --cfg mrustc -o .obj/rust.o -C panic=abort";
+		${mrustc} \
+			-O --crate-type=lib \
+			rust/mod.rs -L${output} \
+			--cfg mrustc \
+			-o .obj/rust \
+			-C panic=abort || exit 1;
+	else
+		echo "rustc +nightly -C panic=abort -C opt-level=3 --emit=obj --crate-type=lib -o .obj/rust.o rust/mod.rs";
+		rustc +nightly \
+			${debug} -C \
+			panic=abort -C \
+			opt-level=3 \
+			--emit=obj \
+			--crate-type=lib \
+			-o .obj/rust.o \
+			rust/mod.rs || exit 1;
+	fi
+	echo "${cc} ${ccflags} -o bin/fam .obj/*.o -L.obj -lsecp256k1";
+	${cc} ${ccflags} -o bin/fam .obj/*.o -L.obj -lsecp256k1 || exit 1;
 fi

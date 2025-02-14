@@ -4,3 +4,5 @@
 #![feature(coerce_unsized)]
 #![feature(core_intrinsics)]
 #![no_implicit_prelude]
+
+mod real_main;
