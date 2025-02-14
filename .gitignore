@@ -30,9 +30,9 @@ c/secp256k1-zkp/aclocal.m4
 c/secp256k1-zkp/libtool
 c/secp256k1-zkp/autom4te.cache/*
 c/secp256k1-zkp/libsecp256k1.pc
-c/secp256k1-zkp/build-aux/c*
-c/secp256k1-zkp/build-aux/d*
-c/secp256k1-zkp/build-aux/i*
-c/secp256k1-zkp/build-aux/l*
-c/secp256k1-zkp/build-aux/m*
-c/secp256k1-zkp/build-aux/t*
+#c/secp256k1-zkp/build-aux/c*
+#c/secp256k1-zkp/build-aux/d*
+#c/secp256k1-zkp/build-aux/i*
+#c/secp256k1-zkp/build-aux/l*
+#c/secp256k1-zkp/build-aux/m4/*
+#c/secp256k1-zkp/build-aux/t*
