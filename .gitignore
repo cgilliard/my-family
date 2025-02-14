@@ -26,3 +26,7 @@ c/secp256k1-zkp/gen_context
 c/secp256k1-zkp/src/ecmult_static_context.h
 c/secp256k1-zkp/src/.deps/*
 c/secp256k1-zkp/src/stamp-h1
+c/secp256k1-zkp/Makefile.in
+c/secp256k1-zkp/aclocal.m4
+c/secp256k1-zkp/libtool
+c/secp256k1-zkp/autom4te.cache/*
