@@ -25,3 +25,4 @@ c/secp256k1-zkp/src/libsecp256k1-config.h*
 c/secp256k1-zkp/gen_context
 c/secp256k1-zkp/src/ecmult_static_context.h
 c/secp256k1-zkp/src/.deps/*
+c/secp256k1-zkp/src/stamp-h1
