@@ -1,6 +1,13 @@
 #!/bin/sh
 
 cc=clang
+output=../famc/output
+mrustc=../famc/bin/mrustc
+debug=
+ccflags=
+updatedocs=
+rustflags=
+filter=
 
 . scripts/parse_params.sh || exit 1;
 
