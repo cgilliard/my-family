@@ -8,3 +8,11 @@
 
 mod ffi;
 mod real_main;
+
+#[cfg(test)]
+mod test {
+	#[test]
+	fn test_mod() {
+		assert_eq!(1, 1);
+	}
+}
