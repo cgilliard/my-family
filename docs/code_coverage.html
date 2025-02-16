@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Code Coverage Report</title>
+		<script src="chart.js"></script>
+		<style>
+			.chart {
+				width: 900px;
+			}
+			.textarea {
+				overflow:auto;
+				resize:none;
+			}
+		</style>
+	</head>
+	<body>
+		 <p align="center">
+                        Code Coverage is currently 91.00%.
+                </p>
+		<center>
+			<div class="chart">
+				<canvas id="chart"></canvas>
+			</div>
+
+			<div class="chart">
+				<canvas id="chart2"></canvas>
+			</div>
+		</center>
+		<script>
+			function format_date(timestamp, time_frame) {
+				var date = new Date(timestamp);
+				var day_of_month = date.getDate();
+				var full_year = date.getFullYear();
+				var month = 1 + date.getMonth();
+				var hours = date.getHours();
+				var minutes = date.getMinutes();
+				var seconds = date.getSeconds();
+				var am_pm = 'AM';
+
+				if(seconds < 10) {
+					seconds = '0' + seconds;
+				}
+				if(minutes < 10) {
+					minutes = '0' + minutes;
+				}
+				if(hours == 12) {
+					am_pm = 'PM';
+				} else if(hours > 12) {
+					hours -= 12;
+					am_pm = 'PM';
+				}
+				if(hours == 0) {
+					hours = 12;
+				}
+
+				return month + '/' + day_of_month + '/' + full_year + ' ' +
+					hours + ':' + minutes + ':' + seconds + ' ' + am_pm;
+			}
+
+			let raw_data = [70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+70.00,
+100.00,
+100.00,
+100.00,
+73.00,
+53.00,
+80.00,
+83.00,
+83.00,
+78.00,
+81.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+100.00,
+87.00,
+87.00,
+87.00,
+87.00,
+87.00,
+87.00,
+88.00,
+84.00,
+90.00,
+91.00,
+89.00,
+90.00,
+88.00,
+90.00,
+89.00,
+88.00,
+86.00,
+90.00,
+86.00,
+84.00,
+84.00,
+77.00,
+85.00,
+85.00,
+85.00,
+85.00,
+87.00,
+87.00,
+86.00,
+86.00,
+87.00,
+87.00,
+87.00,
+86.00,
+86.00,
+83.00,
+83.00,
+79.00,
+84.00,
+85.00,
+87.00,
+83.00,
+83.00,
+86.00,
+86.00,
+86.00,
+85.00,
+82.00,
+82.00,
+81.00,
+85.00,
+85.00,
+85.00,
+91.00,];
+			let labels = [format_date(1734046149 * 1000 ),
+format_date(1734046259 * 1000 ),
+format_date(1734046570 * 1000 ),
+format_date(1734046590 * 1000 ),
+format_date(1734046651 * 1000 ),
+format_date(1734046688 * 1000 ),
+format_date(1734046706 * 1000 ),
+format_date(1734046727 * 1000 ),
+format_date(1734046780 * 1000 ),
+format_date(1734046826 * 1000 ),
+format_date(1734047424 * 1000 ),
+format_date(1734050537 * 1000 ),
+format_date(1734062639 * 1000 ),
+format_date(1734075041 * 1000 ),
+format_date(1734109812 * 1000 ),
+format_date(1734162662 * 1000 ),
+format_date(1734247761 * 1000 ),
+format_date(1734334355 * 1000 ),
+format_date(1734420676 * 1000 ),
+format_date(1734506996 * 1000 ),
+format_date(1734588355 * 1000 ),
+format_date(1734588748 * 1000 ),
+format_date(1734589686 * 1000 ),
+format_date(1734590017 * 1000 ),
+format_date(1734593416 * 1000 ),
+format_date(1734614911 * 1000 ),
+format_date(1734619834 * 1000 ),
+format_date(1734620150 * 1000 ),
+format_date(1734629467 * 1000 ),
+format_date(1734630629 * 1000 ),
+format_date(1734632432 * 1000 ),
+format_date(1734632839 * 1000 ),
+format_date(1734637490 * 1000 ),
+format_date(1734638033 * 1000 ),
+format_date(1734638815 * 1000 ),
+format_date(1734640396 * 1000 ),
+format_date(1734675319 * 1000 ),
+format_date(1734677313 * 1000 ),
+format_date(1734679124 * 1000 ),
+format_date(1734679712 * 1000 ),
+format_date(1734683395 * 1000 ),
+format_date(1734686536 * 1000 ),
+format_date(1734766009 * 1000 ),
+format_date(1734852416 * 1000 ),
+format_date(1734938956 * 1000 ),
+format_date(1734980953 * 1000 ),
+format_date(1735025328 * 1000 ),
+format_date(1735053201 * 1000 ),
+format_date(1735111710 * 1000 ),
+format_date(1735198115 * 1000 ),
+format_date(1735284608 * 1000 ),
+format_date(1735312412 * 1000 ),
+format_date(1735353273 * 1000 ),
+format_date(1735370833 * 1000 ),
+format_date(1735457280 * 1000 ),
+format_date(1735543845 * 1000 ),
+format_date(1735630122 * 1000 ),
+format_date(1735716541 * 1000 ),
+format_date(1735802921 * 1000 ),
+format_date(1735808911 * 1000 ),
+format_date(1735810393 * 1000 ),
+format_date(1735810673 * 1000 ),
+format_date(1735889345 * 1000 ),
+format_date(1735975678 * 1000 ),
+format_date(1736062061 * 1000 ),
+format_date(1736148608 * 1000 ),
+format_date(1736234964 * 1000 ),
+format_date(1736321344 * 1000 ),
+format_date(1736407806 * 1000 ),
+format_date(1736494162 * 1000 ),
+format_date(1736580462 * 1000 ),
+format_date(1736803306 * 1000 ),
+format_date(1736839702 * 1000 ),
+format_date(1736926114 * 1000 ),
+format_date(1737012488 * 1000 ),
+format_date(1737098915 * 1000 ),
+format_date(1737185263 * 1000 ),
+format_date(1737271737 * 1000 ),
+format_date(1737391269 * 1000 ),
+format_date(1737617585 * 1000 ),
+format_date(1737703902 * 1000 ),
+format_date(1737790235 * 1000 ),
+format_date(1737876601 * 1000 ),
+format_date(1737963140 * 1000 ),
+format_date(1738049489 * 1000 ),
+format_date(1738135882 * 1000 ),
+format_date(1738222258 * 1000 ),
+format_date(1738308690 * 1000 ),
+format_date(1738395101 * 1000 ),
+format_date(1738481314 * 1000 ),];
+			let raw_data2 = [20,
+20,
+20,
+20,
+20,
+20,
+20,
+20,
+20,
+20,
+23,
+23,
+41,
+117,
+162,
+548,
+822,
+1223,
+1442,
+1483,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+1748,
+1748,
+1748,
+1748,
+1748,
+1748,
+1971,
+895,
+1833,
+1857,
+2143,
+2120,
+1635,
+2292,
+3072,
+2675,
+2864,
+2530,
+3027,
+3298,
+2818,
+3446,
+3030,
+3162,
+3162,
+3162,
+3406,
+3406,
+3569,
+4197,
+4355,
+4439,
+4439,
+4773,
+4773,
+3869,
+3878,
+5369,
+5215,
+5882,
+8034,
+11472,
+11659,
+6431,
+6697,
+6883,
+6988,
+5995,
+5995,
+6361,
+6632,
+6704,
+6694,
+37,];
+                        let raw_data3 = [14,
+14,
+14,
+14,
+14,
+14,
+14,
+14,
+14,
+14,
+23,
+23,
+41,
+86,
+86,
+440,
+684,
+1020,
+1137,
+1206,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+9,
+1523,
+1523,
+1523,
+1523,
+1523,
+1523,
+1744,
+759,
+1667,
+1690,
+1919,
+1910,
+1446,
+2063,
+2753,
+2374,
+2464,
+2278,
+2626,
+2776,
+2374,
+2665,
+2576,
+2710,
+2710,
+2710,
+2974,
+2972,
+3070,
+3611,
+3819,
+3893,
+3891,
+4131,
+4134,
+3212,
+3223,
+4250,
+4387,
+5014,
+7053,
+9559,
+9739,
+5538,
+5790,
+5959,
+5951,
+4972,
+4970,
+5158,
+5647,
+5764,
+5752,
+34,];
+
+			const data = {
+				labels: labels,
+				datasets: [{
+					label: 'Code Coverage',
+					backgroundColor: 'rgb(31,176,245)',
+					borderColor: 'rgb(31,176,245)',
+					data: raw_data,
+				}]
+			};
+
+			const data2 = {
+                                labels: labels,
+                                datasets: [{
+                                        label: 'Lines of Code',
+                                        backgroundColor: 'rgb(31,176,245)',
+                                        borderColor: 'rgb(31,176,245)',
+                                        data: raw_data2,
+                                },
+                                {
+                                        label: 'Covered Lines',
+                                        backgroundColor: 'rgb(240,128,128)',
+                                        borderColor: 'rgb(240,128,128)',
+                                        data: raw_data3,
+                                }]
+                        };
+
+			const config = {
+				type: 'line',
+				data: data,
+				options: {}
+			};
+
+			const config2 = {
+				type: 'line',
+				data: data2,
+				options: {}
+			};
+
+			const chart = new Chart(
+				document.getElementById('chart'),
+				config
+			);
+
+			const chart2 = new Chart(
+				document.getElementById('chart2'),
+				config2
+			);
+
+		</script>
+		</p>
+	</body>
+</html>
+
