@@ -1,10 +1,9 @@
 use core::ops::FnOnce;
 use core::ptr;
-use prelude::*;
-use sys::{
-	safe_release, safe_thread_create, safe_thread_create_joinable, safe_thread_detach,
-	safe_thread_handle_size, safe_thread_join,
+use ffi::{
+	release, thread_create, thread_create_joinable, thread_detach, thread_handle_size, thread_join,
 };
+use prelude::*;
 
 pub struct JoinHandle {
 	handle: [u8; 8],
@@ -23,7 +22,7 @@ impl JoinHandle {
 	pub fn join(&mut self) -> Result<(), Error> {
 		if !self.need_detach {
 			Err(err!(ThreadJoin))
-		} else if safe_thread_join(&self.handle as *const u8) != 0 {
+		} else if unsafe { thread_join(&self.handle as *const u8) } != 0 {
 			Err(err!(ThreadJoin))
 		} else {
 			self.need_detach = false;
@@ -32,7 +31,7 @@ impl JoinHandle {
 	}
 
 	pub fn detach(&mut self) -> Result<(), Error> {
-		if !self.need_detach || safe_thread_detach(&self.handle as *const u8) != 0 {
+		if !self.need_detach || unsafe { thread_detach(&self.handle as *const u8) } != 0 {
 			Err(err!(ThreadDetach))
 		} else {
 			self.need_detach = false;
@@ -50,7 +49,7 @@ where
 		closure_box.leak();
 		let closure = closure_box.as_ptr().raw() as *mut F;
 		let ret = ptr::read(closure);
-		safe_release(ptr);
+		release(ptr);
 		ret
 	};
 	closure();
@@ -62,7 +61,7 @@ where
 {
 	match Box::new(f) {
 		Ok(mut b) => {
-			if safe_thread_create(start_thread::<F>, b.as_ptr().raw() as *mut u8) != 0 {
+			if unsafe { thread_create(start_thread::<F>, b.as_ptr().raw() as *mut u8) } != 0 {
 				return Err(err!(ThreadCreate));
 			}
 			b.leak();
@@ -76,11 +75,10 @@ pub fn spawnj<F>(f: F) -> Result<JoinHandle, Error>
 where
 	F: FnOnce(),
 {
-	if safe_thread_handle_size() > 8 {
-		exit!(
-			"safe_thread_handle_size() > 8 ({})",
-			safe_thread_handle_size()
-		);
+	if unsafe { thread_handle_size() } > 8 {
+		exit!("thread_handle_size() > 8 ({})", unsafe {
+			thread_handle_size()
+		});
 	}
 	let jh = JoinHandle {
 		handle: [0u8; 8],
@@ -88,11 +86,13 @@ where
 	};
 	match Box::new(f) {
 		Ok(mut b) => {
-			if safe_thread_create_joinable(
-				&jh.handle as *const u8,
-				start_thread::<F>,
-				b.as_ptr().raw() as *mut u8,
-			) != 0
+			if unsafe {
+				thread_create_joinable(
+					&jh.handle as *const u8,
+					start_thread::<F>,
+					b.as_ptr().raw() as *mut u8,
+				)
+			} != 0
 			{
 				return Err(err!(ThreadCreate));
 			}
@@ -106,12 +106,11 @@ where
 #[cfg(test)]
 mod test {
 	use super::*;
-	use sys::safe_getalloccount;
-	use sys::sleep_millis;
+	use ffi::{getalloccount, sleep_millis};
 
 	#[test]
 	fn test_threads() {
-		let initial = safe_getalloccount();
+		let initial = unsafe { getalloccount() };
 		{
 			let lock = lock!();
 			let mut x = 1u32;
@@ -138,17 +137,19 @@ mod test {
 
 			assert!(jh.join().is_ok());
 		}
-		assert_eq!(initial, safe_getalloccount());
+		assert_eq!(initial, unsafe { getalloccount() });
 	}
 	#[test]
 	fn test_threads2() {
-		let initial = safe_getalloccount();
+		let initial = unsafe { getalloccount() };
 		{
 			let lock = lock!();
 			let mut x = 1u32;
 			let mut jh = spawnj(|| {
 				let _v = lock.write();
-				crate::sys::safe_sleep_millis(50);
+				unsafe {
+					sleep_millis(50);
+				}
 				x += 1;
 				assert_eq!(x, 2);
 			})
@@ -164,12 +165,12 @@ mod test {
 
 			assert!(jh.join().is_ok());
 		}
-		assert_eq!(initial, safe_getalloccount());
+		assert_eq!(initial, unsafe { getalloccount() });
 	}
 
 	#[test]
 	fn test_thread_join() {
-		let initial = safe_getalloccount();
+		let initial = unsafe { getalloccount() };
 		{
 			let lock = lock!();
 			let mut x = 1;
@@ -191,6 +192,6 @@ mod test {
 			assert!(jh.join().is_ok());
 			assert_eq!(*rc, 2);
 		}
-		assert_eq!(initial, safe_getalloccount());
+		assert_eq!(initial, unsafe { getalloccount() });
 	}
 }
