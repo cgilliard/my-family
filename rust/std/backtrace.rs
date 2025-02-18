@@ -28,12 +28,11 @@ impl Backtrace {
 		let mut bt;
 		unsafe {
 			bt = alloc(backtrace_size());
-			if bt.is_null() {
-				return Err(err!(Alloc));
-			}
-			if backtrace_ptr(bt as *const u8, 100) <= 0 {
-				release(bt);
-				bt = null();
+			if !bt.is_null() {
+				if backtrace_ptr(bt as *const u8, 100) <= 0 {
+					release(bt);
+					bt = null();
+				}
 			}
 		}
 		Ok(Self { bt })
@@ -53,10 +52,12 @@ impl Backtrace {
 		#[cfg(test)]
 		{
 			let s = "./bin/test_fam\0";
-			let mut txt = null();
+			let txt;
 			unsafe {
 				if !self.bt.is_null() {
 					txt = backtrace_to_string(self.bt, s.as_ptr());
+				} else {
+					txt = null();
 				}
 			}
 			if txt == null() {

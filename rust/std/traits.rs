@@ -1,6 +1,7 @@
 use core::mem::size_of;
 use core::slice::from_raw_parts;
 use prelude::*;
+use std::murmur128::murmur3_x64_128_of_slice;
 
 pub trait Display {
 	fn format(&self, f: &mut Formatter) -> Result<(), Error>;
@@ -38,12 +39,31 @@ impl Ord for u64 {
 	}
 }
 
-impl Hash for i32 {
-	fn hash(&self) -> usize {
-		let slice = unsafe { from_raw_parts(self as *const i32 as *const u8, size_of::<i32>()) };
-		murmur3_32_of_slice(slice, get_murmur_seed()) as usize
-	}
+macro_rules! impl_hash {
+	($type:ident) => {
+		impl Hash for $type {
+			fn hash(&self) -> usize {
+				let slice = unsafe {
+					from_raw_parts(self as *const $type as *const u8, size_of::<$type>())
+				};
+				murmur3_x64_128_of_slice(slice, get_murmur_seed()) as usize
+			}
+		}
+	};
 }
+
+impl_hash!(u8);
+impl_hash!(i8);
+impl_hash!(u16);
+impl_hash!(i16);
+impl_hash!(u32);
+impl_hash!(i32);
+impl_hash!(u64);
+impl_hash!(i64);
+impl_hash!(u128);
+impl_hash!(i128);
+impl_hash!(usize);
+impl_hash!(isize);
 
 impl<T> Display for &[T]
 where

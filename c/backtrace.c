@@ -61,20 +61,24 @@ void backtrace_free(Backtrace *bt) {
 #endif	// TEST
 		free(bt->array);
 		bt->array = NULL;
+		bt->size = 0;
 	}
 }
 
 char *backtrace_to_string(Backtrace *bt, char *binary) {
+	if (bt == NULL || binary == NULL) return NULL;
 	bool term = false;
 	char *ret = malloc(MAX_BACKTRACE_LEN);
+	if (ret == NULL) return NULL;
 #ifdef TEST
 	__alloc_count++;
 #endif	// TEST
-	if (ret == NULL) return NULL;
 	cstring_cat_n(ret, NULL, 0);
 	int len_sum = 0;
 
+#ifdef __linux__
 	char **strings = backtrace_symbols(bt->array, bt->size);
+#endif	// __linux__
 
 	for (int i = 0; i < bt->size; i++) {
 		char address[256];
@@ -107,6 +111,7 @@ char *backtrace_to_string(Backtrace *bt, char *binary) {
 				 "addr2line -f -e %s %llx", binary, address);
 
 			void *fp = popen(command, "r");
+			if (fp == NULL) continue;
 			char buffer[128];
 			while (fgets(buffer, sizeof(buffer), fp) != NULL) {
 				int len = strlen(buffer);
@@ -154,6 +159,7 @@ char *backtrace_to_string(Backtrace *bt, char *binary) {
 			 "atos -fullPath -o %s -l 0x100000000 %s", binary,
 			 address);
 		void *fp = popen(command, "r");
+		if (fp == NULL) continue;
 		char buffer[128];
 
 		while (fgets(buffer, sizeof(buffer), fp) != NULL) {
@@ -169,6 +175,10 @@ char *backtrace_to_string(Backtrace *bt, char *binary) {
 		printf("WARN: Unsupported OS: cannot build backtraces!\n");
 #endif
 	}
+
+#ifdef __linux__
+	if (strings) free(strings);
+#endif	// __linux__
 
 	return ret;
 }

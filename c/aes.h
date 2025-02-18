@@ -1,18 +1,3 @@
-// Copyright (c) 2024, The MyFamily Developers
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Most code originally from:
 // From repo: https://github.com/kokke/tiny-AES-c/
 // License: https://github.com/kokke/tiny-AES-c/blob/master/unlicense.txt:
 // This is free and unencumbered software released into the public domain.
@@ -40,8 +25,8 @@
 //
 // For more information, please refer to <http://unlicense.org/>
 
-#ifndef _BASE_AES__
-#define _BASE_AES__
+#ifndef _AES_H__
+#define _AES_H__
 
 #define AES_BLOCKLEN 16
 #define AES_KEYLEN 32
@@ -61,4 +46,4 @@ void AES_ctx_set_iv(struct AES_ctx *ctx, const unsigned char *iv);
 void AES_CTR_xcrypt_buffer(struct AES_ctx *ctx, unsigned char *buf,
 			   unsigned long long length);
 
-#endif	// _BASE_AES__
+#endif	// _AES_H__
