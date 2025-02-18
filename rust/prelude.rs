@@ -16,9 +16,9 @@ pub use std::thread::*;
 pub use std::traits::*;
 pub use std::util::*;
 pub use std::vec::Vec;
-//pub use util::hashtable::*;
-//pub use util::rbtree::*;
-//pub use util::runtime::*;
+pub use util::hashtable::*;
+pub use util::rbtree::*;
+pub use util::runtime::*;
 
 // External
 pub use core::cmp::PartialEq;

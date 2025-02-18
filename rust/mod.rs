@@ -12,6 +12,7 @@ pub mod std;
 mod ffi;
 pub mod prelude;
 mod real_main;
+pub mod util;
 
 #[cfg(test)]
 mod test {
