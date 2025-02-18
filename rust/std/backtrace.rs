@@ -32,6 +32,7 @@ impl Backtrace {
 				return Err(err!(Alloc));
 			}
 			if backtrace_ptr(bt as *const u8, 100) <= 0 {
+				release(bt);
 				bt = null();
 			}
 		}

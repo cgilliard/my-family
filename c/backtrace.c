@@ -236,21 +236,24 @@ char *backtrace_to_string(Backtrace *bt, char *binary) {
 	bt_cstring_cat_n(ret, NULL, 0);
 	if (ret == NULL) return NULL;
 	int len_sum = 0;
+
+	char **strings = backtrace_symbols(bt->array, bt->size);
+
 	for (int i = 0; i < bt->size; i++) {
 		char address[256];
 #ifdef __linux__
-		int len = strlen(bt->strings[i]);
+		int len = strlen(strings[i]);
 		int last_plus = -1;
 
 		while (len > 0) {
-			if (bt->strings[i][len] == '+') {
+			if (strings[i][len] == '+') {
 				last_plus = len;
 				break;
 			}
 			len--;
 		}
 		if (last_plus > 0) {
-			char *addr = bt->strings[i] + last_plus + 1;
+			char *addr = strings[i] + last_plus + 1;
 			int itt = 0;
 			while (addr[itt]) {
 				if (addr[itt] == ')') {
@@ -279,7 +282,7 @@ char *backtrace_to_string(Backtrace *bt, char *binary) {
 						bt_cstring_cat_n(
 						    ret, buffer,
 						    strlen(buffer));
-						i = size;
+						i = bt->size;
 						break;
 					}
 					bt_cstring_cat_n(ret, buffer,

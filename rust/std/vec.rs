@@ -545,4 +545,13 @@ mod test {
 		}
 		assert_eq!(initial, unsafe { getalloccount() });
 	}
+
+	#[test]
+	fn test_vec_alloc() {
+		let initial = unsafe { getalloccount() };
+		{
+			let mut _v: Vec<i32> = vec![].unwrap();
+		}
+		assert_eq!(initial, unsafe { getalloccount() });
+	}
 }
