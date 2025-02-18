@@ -10,14 +10,7 @@
 pub mod std;
 
 mod ffi;
+pub mod net;
 pub mod prelude;
 mod real_main;
 pub mod util;
-
-#[cfg(test)]
-mod test {
-	#[test]
-	fn test_mod() {
-		assert_eq!(1, 1);
-	}
-}

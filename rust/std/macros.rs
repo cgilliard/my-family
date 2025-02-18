@@ -128,6 +128,7 @@ macro_rules! panic {
 #[macro_export]
 macro_rules! println {
     ($fmt:expr) => {{
+            #[allow(unused_unsafe)]
             unsafe {
                     let len = $fmt.len();
                     if len > 0 {

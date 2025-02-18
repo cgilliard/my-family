@@ -723,6 +723,7 @@ extern "C" {
 	pub fn backtrace_to_string(bt: *const u8, bin: *const u8) -> *const u8;
 	pub fn backtrace_size() -> usize;
 	pub fn backtrace_free(bt: *const u8);
+	pub fn getmicros() -> i64;
 
 	pub fn thread_create(start_routine: extern "C" fn(*mut u8), arg: *mut u8) -> i32;
 	pub fn thread_create_joinable(
@@ -740,4 +741,46 @@ extern "C" {
 	pub fn channel_handle_size() -> usize;
 	pub fn channel_destroy(channel: *const u8) -> i32;
 	pub fn channel_pending(channel: *const u8) -> bool;
+
+	pub fn socket_handle_size() -> usize;
+	pub fn socket_event_size() -> usize;
+	pub fn socket_multiplex_handle_size() -> usize;
+	pub fn socket_fd(handle: *const u8) -> i32;
+	pub fn socket_connect(handle: *mut u8, addr: *const u8, port: i32) -> i32;
+	pub fn socket_shutdown(handle: *const u8) -> i32;
+	pub fn socket_close(handle: *const u8) -> i32;
+	pub fn socket_listen(handle: *mut u8, addr: *const u8, port: u16, backlog: i32) -> i32;
+	pub fn socket_accept(handle: *const u8, nhandle: *mut u8) -> i32;
+	pub fn socket_send(handle: *const u8, buf: *const u8, len: usize) -> i64;
+	pub fn socket_recv(handle: *const u8, buf: *mut u8, capacity: usize) -> i64;
+	pub fn socket_clear_pipe(handle: *const u8) -> i32;
+
+	pub fn socket_multiplex_init(handle: *mut u8) -> i32;
+	pub fn socket_multiplex_register(
+		handle: *const u8,
+		socket: *const u8,
+		flags: i32,
+		ptr: *const u8,
+	) -> i32;
+	pub fn socket_multiplex_unregister_write(
+		handle: *const u8,
+		socket: *const u8,
+		connptr: *const u8,
+	) -> i32;
+	pub fn socket_multiplex_wait(
+		handle: *const u8,
+		events: *mut u8,
+		max_events: i32,
+		timeout_millis: i64,
+	) -> i32;
+	pub fn socket_event_handle(handle: *mut u8, event: *const u8);
+	pub fn socket_event_is_read(event: *const u8) -> bool;
+	pub fn socket_event_is_write(event: *const u8) -> bool;
+	pub fn socket_event_ptr(event: *const u8) -> *const u8;
+	pub fn socket_handle_eq(handle1: *const u8, handle2: *const u8) -> bool;
+
+	pub fn open_pipe(pair: *mut u8) -> i32;
+	pub fn Base64decode(output: *mut u8, input: *mut u8);
+	pub fn Base64encode(input: *const u8, output: *mut u8, len: usize);
+	pub fn SHA1(data: *const u8, size: usize, hash: *mut u8);
 }
