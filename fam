@@ -25,8 +25,8 @@ elif [ "$test" = "1" ] || [ "$fasttest" = "1" ] || [ "$coverage" = "1" ]; then
         do
                 if [ "${file}" != "main.c" ]; then
                         if [ ! -e ../.obj/${file%.c}.o ] || [ ${file} -nt ../.obj/${file%.c}.o ]; then
-                                echo "${cc} ${ccflags} -DTEST -o ../.obj/${file%.c}.o -c -Ic ${file}";
-                                ${cc} ${ccflags} -DTEST -o ../.obj/${file%.c}.o -c -Ic ${file} || exit 1;
+                                echo "${cc} ${ccflags} -DTEST -o ../.obj/${file%.c}.o -c -I. ${file}";
+                                ${cc} ${ccflags} -DTEST -o ../.obj/${file%.c}.o -c -I. ${file} || exit 1;
                         fi
                 fi
         done
@@ -57,8 +57,8 @@ elif [ "$all" = "1" ]; then
 	for file in *.c
 	do
 		if [ ! -e ../.obj/${file%.c}.o ] || [ ${file} -nt ../.obj/${file%.c}.o ]; then
-			echo "${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -Ic ${file}";
-			${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -Ic ${file} || exit 1;
+			echo "${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -I. ${file}";
+			${cc} ${ccflags} -o ../.obj/${file%.c}.o -c -I. ${file} || exit 1;
 		fi
 	done
 	cd ..

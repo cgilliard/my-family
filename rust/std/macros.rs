@@ -101,42 +101,14 @@ macro_rules! exit {
                 exit!("{}", $fmt);
         }};
         ($fmt:expr,  $($t:expr),*) => {{
-                        use ffi::{backtrace_full, _exit};
+                        use ffi::_exit;
 
                         print!("Panic[@{}:{}]: ", file!(), line!());
                         println!($fmt, $($t),*);
-                        let bt;
-                        #[cfg(test)]
-                        {
-                            let s = "./bin/test_fam";
-                            unsafe {
-                                bt = backtrace_full(s.as_ptr(), s.len());
-                            }
+                        match Backtrace::new() {
+                                Ok(bt) => { let _ = bt.print(); },
+                                Err(_e) => {},
                         }
-                        #[cfg(not(test))]
-                        {
-                            let s = "./bin/fam";
-                            unsafe {
-                                bt = backtrace_full(s.as_ptr(), s.len());
-                            }
-                        }
-
-                        if !bt.is_null() {
-                                use ffi::{cstring_len, release};
-                                use core::str::from_utf8_unchecked;
-                                use core::slice::from_raw_parts;
-
-                                let len = unsafe { cstring_len(bt) };
-                                let bt_slice = unsafe { from_raw_parts(bt, len) };
-                                let bt_str = unsafe { from_utf8_unchecked(bt_slice) };
-                                let backtrace = match String::new(bt_str) {
-                                        Ok(backtrace) => backtrace,
-                                        Err(_) => String::empty(),
-                                };
-                                println!("{}", backtrace);
-                                unsafe { release(bt); }
-                        }
-
                         unsafe { _exit(-1); }
                         loop {}
         }};

@@ -718,7 +718,6 @@ extern "C" {
 	pub fn cas_release(ptr: *mut u64, expect: *const u64, desired: u64) -> bool;
 	pub fn f64_to_str(d: f64, buf: *mut u8, capacity: u64) -> i32;
 	pub fn sched_yield() -> i32;
-	pub fn backtrace_full(bin: *const u8, len: usize) -> *const u8;
 	pub fn cstring_len(s: *const u8) -> usize;
 	pub fn backtrace_ptr(bin: *const u8, len: usize) -> usize;
 	pub fn backtrace_to_string(bt: *const u8, bin: *const u8) -> *const u8;
