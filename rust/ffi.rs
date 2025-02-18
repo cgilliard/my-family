@@ -700,4 +700,28 @@ extern "C" {
 		extra_commit_len: u64,
 		message: *mut u8,
 	) -> i32;
+
+	pub fn rand_bytes(data: *mut u8, len: usize) -> i32;
+	pub fn write(fd: i32, buf: *const u8, len: usize) -> i64;
+	pub fn _exit(code: i32);
+	pub fn alloc(len: usize) -> *const u8;
+	pub fn resize(ptr: *const u8, len: usize) -> *const u8;
+	pub fn release(ptr: *const u8);
+	pub fn sleep_millis(millis: u64) -> i32;
+	pub fn ptr_add(p: *mut u8, v: i64);
+	pub fn getalloccount() -> i64;
+	pub fn getfdcount() -> i64;
+	pub fn atomic_store_u64(ptr: *mut u64, value: u64);
+	pub fn atomic_load_u64(ptr: *const u64) -> u64;
+	pub fn atomic_fetch_add_u64(ptr: *mut u64, value: u64) -> u64;
+	pub fn atomic_fetch_sub_u64(ptr: *mut u64, value: u64) -> u64;
+	pub fn cas_release(ptr: *mut u64, expect: *const u64, desired: u64) -> bool;
+	pub fn f64_to_str(d: f64, buf: *mut u8, capacity: u64) -> i32;
+	pub fn sched_yield() -> i32;
+	pub fn backtrace_full(bin: *const u8, len: usize) -> *const u8;
+	pub fn cstring_len(s: *const u8) -> usize;
+	pub fn backtrace_ptr(bin: *const u8, len: usize) -> usize;
+	pub fn backtrace_to_string(bt: *const u8, bin: *const u8) -> *const u8;
+	pub fn backtrace_size() -> usize;
+	pub fn backtrace_free(bt: *const u8);
 }
