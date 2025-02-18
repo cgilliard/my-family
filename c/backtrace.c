@@ -43,6 +43,9 @@ int backtrace_ptr(Backtrace *bt, int max_size) {
 		bt->size = 0;
 		return 0;
 	}
+#ifdef TEST
+	__alloc_count++;
+#endif	// TEST
 	int size = backtrace(array, max_size);
 	bt->size = size;
 	bt->array = array;
@@ -53,6 +56,9 @@ int backtrace_size() { return sizeof(Backtrace); }
 
 void backtrace_free(Backtrace *bt) {
 	if (bt && bt->array) {
+#ifdef TEST
+		__alloc_count--;
+#endif	// TEST
 		free(bt->array);
 		bt->array = NULL;
 	}
@@ -61,8 +67,11 @@ void backtrace_free(Backtrace *bt) {
 char *backtrace_to_string(Backtrace *bt, char *binary) {
 	bool term = false;
 	char *ret = malloc(MAX_BACKTRACE_LEN);
-	cstring_cat_n(ret, NULL, 0);
+#ifdef TEST
+	__alloc_count++;
+#endif	// TEST
 	if (ret == NULL) return NULL;
+	cstring_cat_n(ret, NULL, 0);
 	int len_sum = 0;
 
 	char **strings = backtrace_symbols(bt->array, bt->size);

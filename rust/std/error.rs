@@ -59,19 +59,6 @@ pub struct Error {
 	pub backtrace: Backtrace,
 }
 
-impl Drop for Error {
-	fn drop(&mut self) {
-		/*
-		if !self.backtrace.bt.is_null() {
-			unsafe {
-				release(self.backtrace.bt);
-				self.backtrace.bt = null();
-			}
-		}
-			*/
-	}
-}
-
 impl Error {
 	pub fn new(kind: ErrorKind, line: u32, file: &str) -> Self {
 		let backtrace;
