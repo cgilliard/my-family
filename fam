@@ -32,7 +32,7 @@ elif [ "$test" = "1" ] || [ "$fasttest" = "1" ] || [ "$coverage" = "1" ]; then
         done
         cd ..
         ar rcs .obj/libtest.a .obj/*.o || exit 1;
-	echo "rustc +nightly -C debuginfo=2 --test rust/mod.rs -o bin/test_fam -L .obj -l static=test -l static=secp256k1 -l static=gmp ${rustflags}"
+	echo "rustc +nightly -C debuginfo=2 --test rust/mod.rs -o bin/test_fam -L .obj -l static=test -l static=secp256k1 ${rustflags}"
         rustc +nightly --extern \
                 num_integer=.obj/libnum_integer.rlib \
                 -C debuginfo=2 --test rust/mod.rs \
@@ -40,7 +40,7 @@ elif [ "$test" = "1" ] || [ "$fasttest" = "1" ] || [ "$coverage" = "1" ]; then
                 -L .obj \
                 -l static=test \
                 -l static=secp256k1 \
-		-l static=gmp ${rustflags} ||  exit 1;
+		${rustflags} ||  exit 1;
         ./bin/test_fam ${filter} --test-threads=1 || exit 1;
         if [ "$coverage" = "1" ]; then
                 git log -1 > /tmp/coverage.txt || exit 1;
@@ -63,7 +63,7 @@ elif [ "$all" = "1" ]; then
 	done
 	cd ..
 	if [ "$usemrustc" = "1" ]; then
-		echo "${mrustc} --crate-type=lib rust/mod.rs -L${output} --cfg mrustc -o .obj/rust.o -C panic=abort -l static=test -l static=secp256k1 -l static=gmp";
+		echo "${mrustc} --crate-type=lib rust/mod.rs -L${output} --cfg mrustc -o .obj/rust.o -C panic=abort -l static=test -l static=secp256k1";
 		${mrustc} \
 			-O --crate-type=lib \
 			rust/mod.rs -L${output} \
@@ -71,10 +71,9 @@ elif [ "$all" = "1" ]; then
 			-o .obj/rust \
 			-l static=test -l \
 			static=secp256k1 \
-			-l static=gmp \
 			-C panic=abort || exit 1;
 	else
-		echo "rustc +nightly -C panic=abort -C opt-level=3 --emit=obj --crate-type=lib -o .obj/rust.o -l static=test -l static=secp256k1 -l static=gmp rust/mod.rs";
+		echo "rustc +nightly -C panic=abort -C opt-level=3 --emit=obj --crate-type=lib -o .obj/rust.o -l static=test -l static=secp256k1 rust/mod.rs";
 		rustc +nightly \
 			${debug} -C \
 			panic=abort -C \
@@ -84,7 +83,6 @@ elif [ "$all" = "1" ]; then
 			-o .obj/rust.o \
 			-l static=test \
                 	-l static=secp256k1 \
-                	-l static=gmp \
 			rust/mod.rs || exit 1;
 	fi
 	echo "${cc} ${ccflags} -o bin/fam .obj/*.o -L.obj -lsecp256k1";
