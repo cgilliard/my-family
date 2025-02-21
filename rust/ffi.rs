@@ -23,6 +23,8 @@
 use core::marker::Copy;
 #[cfg(not(mrustc))]
 use core::mem::MaybeUninit;
+use core::ptr::write_volatile;
+use prelude::*;
 
 /// Flag for context to enable no precomputation
 pub const SECP256K1_START_NONE: u32 = (1 << 0) | 0;
@@ -100,6 +102,19 @@ impl PublicKey {
 	#[cfg(mrustc)]
 	pub unsafe fn blank() -> Self {
 		Self::new()
+	}
+}
+
+pub const SECRET_KEY_SIZE: usize = 32;
+pub struct SecretKey(pub [u8; SECRET_KEY_SIZE]);
+
+impl Drop for SecretKey {
+	fn drop(&mut self) {
+		for i in 0..SECRET_KEY_SIZE {
+			unsafe {
+				write_volatile(&mut self.0[i], 0);
+			}
+		}
 	}
 }
 
@@ -701,6 +716,7 @@ extern "C" {
 		message: *mut u8,
 	) -> i32;
 
+	// MISC
 	pub fn rand_bytes(data: *mut u8, len: usize) -> i32;
 	pub fn write(fd: i32, buf: *const u8, len: usize) -> i64;
 	pub fn _exit(code: i32);
@@ -725,6 +741,7 @@ extern "C" {
 	pub fn backtrace_free(bt: *const u8);
 	pub fn getmicros() -> i64;
 
+	// THREAD
 	pub fn thread_create(start_routine: extern "C" fn(*mut u8), arg: *mut u8) -> i32;
 	pub fn thread_create_joinable(
 		handle: *const u8,
@@ -735,6 +752,7 @@ extern "C" {
 	pub fn thread_detach(handle: *const u8) -> i32;
 	pub fn thread_handle_size() -> usize;
 
+	// CHANNEL
 	pub fn channel_init(channel: *const u8) -> i32;
 	pub fn channel_send(channel: *const u8, ptr: *const u8) -> i32;
 	pub fn channel_recv(channel: *const u8) -> *mut u8;
@@ -742,6 +760,7 @@ extern "C" {
 	pub fn channel_destroy(channel: *const u8) -> i32;
 	pub fn channel_pending(channel: *const u8) -> bool;
 
+	// SOCKET
 	pub fn socket_handle_size() -> usize;
 	pub fn socket_event_size() -> usize;
 	pub fn socket_multiplex_handle_size() -> usize;
@@ -783,4 +802,10 @@ extern "C" {
 	pub fn Base64decode(output: *mut u8, input: *mut u8);
 	pub fn Base64encode(input: *const u8, output: *mut u8, len: usize);
 	pub fn SHA1(data: *const u8, size: usize, hash: *mut u8);
+
+	// CPSRNG
+	pub fn cpsrng_rand_bytes(v: *mut u8, len: usize);
+	pub fn cpsrng_context_create() -> *mut u8;
+	pub fn cpsrng_context_destroy(ctx: *mut u8);
+	pub fn cpsrng_rand_bytes_ctx(ctx: *mut u8, v: *mut u8, len: usize);
 }
