@@ -199,8 +199,6 @@ pub fn verify_single(
 		_ => false,
 	}
 }
-/*
-
 
 /// Batch Schnorr signature verification
 /// Returns: true on success
@@ -219,23 +217,48 @@ pub fn verify_batch(
 	}
 
 	for i in 0..pub_keys.len() {
-		if (pub_keys[i].0).0.starts_with(&ZERO_256) {
+		let mut is_ok = false;
+		for j in 0..pub_keys[i].0.len() {
+			if pub_keys[i].0[j] != 0 {
+				is_ok = true;
+			}
+		}
+		if !is_ok {
 			return false;
 		}
 	}
 
-	let sigs_vec = map_vec!(sigs, |s| s.0.as_ptr());
-	let msgs_vec = map_vec!(msgs, |m| m.as_ptr());
-	let pub_keys_vec = map_vec!(pub_keys, |pk| pk.as_ptr());
+	let mut sigs_vec = Vec::new();
+	for sig in sigs {
+		match sigs_vec.push(sig.0.as_ptr()) {
+			Ok(_) => {}
+			Err(_) => return false,
+		}
+	}
+	let mut msgs_vec = Vec::new();
+	for msg in msgs {
+		match msgs_vec.push(msg.0.as_ptr()) {
+			Ok(_) => {}
+			Err(_) => return false,
+		}
+	}
+
+	let mut pub_keys_vec = Vec::new();
+	for pk in pub_keys {
+		match pub_keys_vec.push(pk.as_ptr()) {
+			Ok(_) => {}
+			Err(_) => return false,
+		}
+	}
 
 	unsafe {
 		let scratch = ffi::secp256k1_scratch_space_create(secp.ctx, SCRATCH_SPACE_SIZE);
 		let result = ffi::secp256k1_schnorrsig_verify_batch(
 			secp.ctx,
 			scratch,
-			sigs_vec.as_ptr(),
-			msgs_vec.as_ptr(),
-			pub_keys_vec.as_ptr(),
+			sigs_vec.as_ptr() as *const *const u8,
+			msgs_vec.as_ptr() as *const *const u8,
+			pub_keys_vec.as_ptr() as *const *const PublicKey,
 			sigs.len(),
 		);
 		ffi::secp256k1_scratch_space_destroy(scratch);
@@ -254,19 +277,26 @@ pub fn add_signatures_single(
 	sigs: Vec<&Signature>,
 	pubnonce_total: &PublicKey,
 ) -> Result<Signature, Error> {
-	let mut retsig = Signature::from(ffi::Signature::new());
-	let sig_vec = map_vec!(sigs, |s| s.0.as_ptr());
+	let mut retsig = Signature::new();
+
+	let mut sig_vec = Vec::new();
+	for sig in &sigs {
+		match sig_vec.push(sig.0.as_ptr()) {
+			Ok(_) => {}
+			Err(_) => return Err(err!(Alloc)),
+		}
+	}
 	let retval = unsafe {
 		ffi::secp256k1_aggsig_add_signatures_single(
 			secp.ctx,
 			retsig.as_mut_ptr(),
-			sig_vec.as_ptr(),
+			sig_vec.as_ptr() as *const *const u8,
 			sig_vec.len(),
 			pubnonce_total.as_ptr(),
 		)
 	};
 	if retval == 0 {
-		return Err(Error::InvalidSignature);
+		return Err(err!(InvalidSignature));
 	}
 	Ok(retsig)
 }
@@ -282,8 +312,8 @@ pub fn subtract_partial_signature(
 	sig: &Signature,
 	partial_sig: &Signature,
 ) -> Result<(Signature, Option<Signature>), Error> {
-	let mut ret_partsig = Signature::from(ffi::Signature::new());
-	let mut ret_partsig_alt = Signature::from(ffi::Signature::new());
+	let mut ret_partsig = Signature::new();
+	let mut ret_partsig_alt = Signature::new();
 	let retval = unsafe {
 		ffi::secp256k1_aggsig_subtract_partial_signature(
 			secp.ctx,
@@ -295,21 +325,22 @@ pub fn subtract_partial_signature(
 	};
 
 	match retval {
-		-1 => Err(Error::SigSubtractionFailure),
+		-1 => Err(err!(SignatureSubtractionError)),
 		1 => Ok((ret_partsig, None)),
 		2 => Ok((ret_partsig, Some(ret_partsig_alt))),
-		_ => Err(Error::InvalidSignature)
+		_ => Err(err!(InvalidSignature)),
 	}
 }
 
-
 /// Manages an instance of an aggsig multisig context, and provides all methods
 /// to act on that context
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AggSigContext {
-	ctx: *mut ffi::Context,
-	aggsig_ctx: *mut ffi::AggSigContext,
+	ctx: *mut Context,
+	aggsig_ctx: *mut crate::secp256k1::types::AggSigContext,
 }
+
+/*
 
 impl AggSigContext {
 	/// Creates new aggsig context with a new random seed
@@ -427,6 +458,8 @@ impl AggSigContext {
 	}
 }
 
+*/
+
 impl Drop for AggSigContext {
 	fn drop(&mut self) {
 		unsafe {
@@ -434,6 +467,8 @@ impl Drop for AggSigContext {
 		}
 	}
 }
+
+/*
 
 #[cfg(test)]
 mod tests {

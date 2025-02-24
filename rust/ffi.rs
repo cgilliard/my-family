@@ -20,7 +20,7 @@ extern "C" {
 
 	pub fn secp256k1_context_randomize(cx: *mut Context, seed32: *const u8) -> i32;
 	// Scratch space
-	pub fn secp256k1_scratch_space_create(cx: *mut Context, max_size: u64) -> *mut ScratchSpace;
+	pub fn secp256k1_scratch_space_create(cx: *mut Context, max_size: usize) -> *mut ScratchSpace;
 
 	pub fn secp256k1_scratch_space_destroy(sp: *mut ScratchSpace);
 
@@ -224,14 +224,14 @@ extern "C" {
 		sig: *const *const u8,
 		msg32: *const *const u8,
 		pk: *const *const PublicKey,
-		n_sigs: u64,
+		n_sigs: usize,
 	) -> i32;
 
 	pub fn secp256k1_aggsig_add_signatures_single(
 		cx: *const Context,
 		ret_sig: *mut Signature,
 		sigs: *const *const u8,
-		num_sigs: u64,
+		num_sigs: usize,
 		pubnonce_total: *const PublicKey,
 	) -> i32;
 

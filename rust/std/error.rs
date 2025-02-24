@@ -30,6 +30,7 @@ define_enum_with_strings!(ErrorKind {
 	ThreadJoin,
 	InvalidSignature,
 	InvalidPublicKey,
+	SignatureSubtractionError,
 	Backtrace,
 	ThreadDetach,
 	IllegalState,
