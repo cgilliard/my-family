@@ -13,32 +13,23 @@
 
 //! # Aggregated Signature (a.k.a. Schnorr) Functionality
 
-//use crate::{AggSigPartialSignature, Error, Message, Signature};
-
 use core::ptr;
 use ffi;
-use ffi::{PublicKey, SecretKey};
+use ffi::cpsrng_rand_bytes_ctx;
 use prelude::*;
-use secp256k1::Secp256k1;
-//use rand::{thread_rng, Rng};
-use ffi::cpsrng_rand_bytes;
+use secp256k1::types::*;
 
 const SCRATCH_SPACE_SIZE: usize = 1024 * 1024;
-
-/// The 256 bits 0
-pub const ZERO_256: [u8; 32] = [
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-];
 
 /// Single-Signer (plain old Schnorr, sans-multisig) export nonce
 /// Returns: Ok(SecretKey) on success
 /// In:
 /// msg: the message to sign
 /// seckey: the secret key
-pub fn export_secnonce_single(secp: &Secp256k1) -> Result<SecretKey, Error> {
-	let mut return_key = SecretKey::new(&secp, &mut thread_rng());
+pub fn export_secnonce_single(secp: &Secp256k1, rand: *mut u8) -> Result<SecretKey, Error> {
+	let mut return_key = SecretKey::generate(rand);
 	let mut seed = [0u8; 32];
-	thread_rng().fill(&mut seed);
+	unsafe { cpsrng_rand_bytes_ctx(rand, &mut seed as *mut u8, 32) };
 	let retval = unsafe {
 		ffi::secp256k1_aggsig_export_secnonce_single(
 			secp.ctx,
@@ -47,36 +38,46 @@ pub fn export_secnonce_single(secp: &Secp256k1) -> Result<SecretKey, Error> {
 		)
 	};
 	if retval == 0 {
-		return Err(Error::InvalidSignature);
+		return Err(err!(InvalidSignature));
 	}
 	Ok(return_key)
 }
-
-/*
 
 // This is a macro that check zero public key
 macro_rules! is_zero_pubkey {
 	(reterr => $e:expr) => {
 		match $e {
 			Some(n) => {
-				if (n.0).0.starts_with(&ZERO_256) {
-					return Err(Error::InvalidPublicKey);
+				let mut is_ok = false;
+				for i in 0..n.0.len() {
+					if n.0[i] != 0 {
+						is_ok = true;
 					}
-				n.as_ptr()
 				}
-			None => ptr::null(),
+				if !is_ok {
+					return Err(err!(InvalidPublicKey));
+				}
+				n.as_ptr()
 			}
+			None => ptr::null(),
+		}
 	};
 	(retfalse => $e:expr) => {
 		match $e {
 			Some(n) => {
-				if (n.0).0.starts_with(&ZERO_256) {
-					return false;
+				let mut is_ok = false;
+				for i in 0..n.0.len() {
+					if n.0[i] != 0 {
+						is_ok = true;
 					}
-				n.as_ptr()
 				}
-			None => ptr::null(),
+				if !is_ok {
+					return false;
+				}
+				n.as_ptr()
 			}
+			None => ptr::null(),
+		}
 	};
 }
 
@@ -98,20 +99,21 @@ pub fn sign_single(
 	pubnonce: Option<&PublicKey>,
 	pubkey_for_e: Option<&PublicKey>,
 	final_nonce_sum: Option<&PublicKey>,
+	rand: *mut u8,
 ) -> Result<Signature, Error> {
-	let mut retsig = Signature::from(ffi::Signature::new());
+	let mut retsig = Signature::from(Signature::new());
 	let mut seed = [0u8; 32];
-	thread_rng().fill(&mut seed);
+	unsafe { cpsrng_rand_bytes_ctx(rand, &mut seed as *mut u8, 32) };
 
 	let secnonce = match secnonce {
-		Some(n) => n.as_ptr(),
+		Some(n) => n.0.as_ptr(),
 		None => ptr::null(),
 	};
 
 	let pubnonce = is_zero_pubkey!(reterr => pubnonce);
 
 	let extra = match extra {
-		Some(e) => e.as_ptr(),
+		Some(e) => e.0.as_ptr(),
 		None => ptr::null(),
 	};
 
@@ -134,7 +136,7 @@ pub fn sign_single(
 		)
 	};
 	if retval == 0 {
-		return Err(Error::InvalidSignature);
+		return Err(err!(InvalidSignature));
 	}
 	Ok(retsig)
 }
@@ -169,7 +171,13 @@ pub fn verify_single(
 		false => 0,
 	};
 
-	if (sig.0).0.starts_with(&ZERO_256) || (pubkey.0).0.starts_with(&ZERO_256) {
+	let mut is_ok = false;
+	for i in 0..sig.0.len() {
+		if sig.0[i] != 0 {
+			is_ok = true;
+		}
+	}
+	if !is_ok {
 		return false;
 	}
 
@@ -191,6 +199,7 @@ pub fn verify_single(
 		_ => false,
 	}
 }
+/*
 
 
 /// Batch Schnorr signature verification

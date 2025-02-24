@@ -1,211 +1,10 @@
-// Bitcoin secp256k1 bindings
-// Written in 2014 by
-//   Dawid Ciężarkiewicz
-//   Andrew Poelstra
-//
-// To the extent possible under law, the author(s) have dedicated all
-// copyright and related and neighboring rights to this software to
-// the public domain worldwide. This software is distributed without
-// any warranty.
-//
-// You should have received a copy of the CC0 Public Domain Dedication
-// along with this software.
-// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
-//
-
 // # FFI bindings
-// Direct bindings to the underlying C library functions. These should
-// not be needed for most users.
+// Direct bindings to the underlying C library functions.
 
 #![allow(dead_code)]
 #![allow(invalid_value)]
 
-use core::marker::Copy;
-#[cfg(not(mrustc))]
-use core::mem::MaybeUninit;
-use core::ptr::write_volatile;
-use prelude::*;
-
-/// Flag for context to enable no precomputation
-pub const SECP256K1_START_NONE: u32 = (1 << 0) | 0;
-/// Flag for context to enable verification precomputation
-pub const SECP256K1_START_VERIFY: u32 = (1 << 0) | (1 << 8);
-/// Flag for context to enable signing precomputation
-pub const SECP256K1_START_SIGN: u32 = (1 << 0) | (1 << 9);
-/// Flag for keys to indicate uncompressed serialization format
-pub const SECP256K1_SER_UNCOMPRESSED: u32 = (1 << 1) | 0;
-/// Flag for keys to indicate compressed serialization format
-pub const SECP256K1_SER_COMPRESSED: u32 = (1 << 1) | (1 << 8);
-
-/// A nonce generation function. Ordinary users of the library
-/// never need to see this type; only if you need to control
-/// nonce generation do you need to use it. I have deliberately
-/// made this hard to do: you have to write your own wrapper
-/// around the FFI functions to use it. And it's an unsafe type.
-/// Nonces are generated deterministically by RFC6979 by
-/// default; there should be no need to ever change this.
-pub type NonceFn = unsafe extern "C" fn(
-	nonce32: *mut u8,
-	msg32: *const u8,
-	key32: *const u8,
-	algo16: *const u8,
-	attempt: u32,
-	data: *const u8,
-);
-
-/// A Secp256k1 context, containing various precomputed values and such
-/// needed to do elliptic curve computations. If you create one of these
-/// with `secp256k1_context_create` you MUST destroy it with
-/// `secp256k1_context_destroy`, or else you will have a memory leak.
-#[derive(Clone)]
-#[repr(C)]
-pub struct Context(i32);
-
-/// Secp256k1 aggsig context. As above, needs to be destroyed with
-/// `secp256k1_aggsig_context_destroy`
-#[derive(Clone)]
-#[repr(C)]
-pub struct AggSigContext(i32);
-
-/// Secp256k1 scratch space
-#[derive(Clone)]
-#[repr(C)]
-pub struct ScratchSpace(i32);
-
-/// Secp256k1 bulletproof generators
-#[derive(Clone)]
-#[repr(C)]
-pub struct BulletproofGenerators(i32);
-
-/// Generator
-#[repr(C)]
-#[derive(Clone)]
-pub struct Generator(pub [u8; 64]);
-impl Copy for Generator {}
-
-/// Library-internal representation of a Secp256k1 public key
-#[repr(C)]
-#[derive(Clone)]
-pub struct PublicKey(pub [u8; 64]);
-impl Copy for PublicKey {}
-
-impl PublicKey {
-	/// Create a new (zeroed) public key usable for the FFI interface
-	pub fn new() -> PublicKey {
-		PublicKey([0; 64])
-	}
-	/// Create a new (uninitialized) public key usable for the FFI interface
-	#[cfg(not(mrustc))]
-	pub unsafe fn blank() -> Self {
-		MaybeUninit::uninit().assume_init()
-	}
-	#[cfg(mrustc)]
-	pub unsafe fn blank() -> Self {
-		Self::new()
-	}
-}
-
-pub const SECRET_KEY_SIZE: usize = 32;
-pub struct SecretKey(pub [u8; SECRET_KEY_SIZE]);
-
-impl Drop for SecretKey {
-	fn drop(&mut self) {
-		for i in 0..SECRET_KEY_SIZE {
-			unsafe {
-				write_volatile(&mut self.0[i], 0);
-			}
-		}
-	}
-}
-
-/// Library-internal representation of a Secp256k1 signature
-#[repr(C)]
-#[derive(Clone)]
-pub struct Signature(pub [u8; 64]);
-impl Copy for Signature {}
-
-/// Library-internal representation of a Secp256k1 signature + recovery ID
-#[repr(C)]
-#[derive(Clone)]
-pub struct RecoverableSignature([u8; 65]);
-impl Copy for RecoverableSignature {}
-
-/// Library-internal representation of a Secp256k1 aggsig partial signature
-#[repr(C)]
-#[derive(Clone)]
-pub struct AggSigPartialSignature([u8; 32]);
-impl Copy for AggSigPartialSignature {}
-
-impl Signature {
-	/// Create a new (zeroed) signature usable for the FFI interface
-	pub fn new() -> Signature {
-		Signature([0; 64])
-	}
-	/// Create a signature from raw data
-	pub fn from_data(data: [u8; 64]) -> Signature {
-		Signature(data)
-	}
-	/// Create a new (uninitialized) signature usable for the FFI interface
-	#[cfg(not(mrustc))]
-	pub unsafe fn blank() -> Self {
-		MaybeUninit::uninit().assume_init()
-	}
-	#[cfg(mrustc)]
-	pub unsafe fn blank() -> Self {
-		Self::new()
-	}
-}
-
-impl RecoverableSignature {
-	/// Create a new (zeroed) signature usable for the FFI interface
-	pub fn new() -> RecoverableSignature {
-		RecoverableSignature([0; 65])
-	}
-	/// Create a new (uninitialized) signature usable for the FFI interface
-	#[cfg(not(mrustc))]
-	pub unsafe fn blank() -> Self {
-		MaybeUninit::uninit().assume_init()
-	}
-	#[cfg(mrustc)]
-	pub unsafe fn blank() -> Self {
-		Self::new()
-	}
-}
-
-impl AggSigPartialSignature {
-	/// Create a new (zeroed) aggsig partial signature usable for the FFI interface
-	pub fn new() -> AggSigPartialSignature {
-		AggSigPartialSignature([0; 32])
-	}
-	/// Create a new (uninitialized) signature usable for the FFI interface
-	#[cfg(not(mrustc))]
-	pub unsafe fn blank() -> Self {
-		MaybeUninit::uninit().assume_init()
-	}
-	#[cfg(mrustc)]
-	pub unsafe fn blank() -> Self {
-		Self::new()
-	}
-}
-
-/// Library-internal representation of an ECDH shared secret
-#[repr(C)]
-pub struct SharedSecret([u8; 32]);
-impl SharedSecret {
-	/// Create a new (zeroed) signature usable for the FFI interface
-	pub fn new() -> SharedSecret {
-		SharedSecret([0; 32])
-	}
-	/// Create a new (uninitialized) signature usable for the FFI interface
-	#[cfg(not(mrustc))]
-	pub unsafe fn blank() -> Self {
-		MaybeUninit::uninit().assume_init()
-	}
-	#[cfg(mrustc)]
-	pub unsafe fn blank() -> Self {
-		Self::new()
-	}
-}
+use secp256k1::types::*;
 
 extern "C" {
 	pub static secp256k1_nonce_function_rfc6979: NonceFn;
@@ -391,15 +190,15 @@ extern "C" {
 	// AGGSIG (single sig or single-signer Schnorr)
 	pub fn secp256k1_aggsig_export_secnonce_single(
 		cx: *const Context,
-		secnonce32: *mut u8,
+		secnonce32: *mut SecretKey,
 		seed32: *const u8,
 	) -> i32;
 
 	pub fn secp256k1_aggsig_sign_single(
 		cx: *const Context,
 		sig: *mut Signature,
-		msg32: *const u8,
-		seckey32: *const u8,
+		msg32: *const Message,
+		seckey32: *const SecretKey,
 		secnonce32: *const u8,
 		extra32: *const u8,
 		pubnonce_for_e: *const PublicKey,
@@ -411,7 +210,7 @@ extern "C" {
 	pub fn secp256k1_aggsig_verify_single(
 		cx: *const Context,
 		sig: *const Signature,
-		msg32: *const u8,
+		msg32: *const Message,
 		pubnonce: *const PublicKey,
 		pk: *const PublicKey,
 		pk_total: *const PublicKey,

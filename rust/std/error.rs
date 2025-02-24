@@ -28,6 +28,8 @@ define_enum_with_strings!(ErrorKind {
 	CapacityExceeded,
 	ThreadCreate,
 	ThreadJoin,
+	InvalidSignature,
+	InvalidPublicKey,
 	Backtrace,
 	ThreadDetach,
 	IllegalState,

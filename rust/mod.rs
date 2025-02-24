@@ -13,5 +13,5 @@ mod ffi;
 pub mod net;
 pub mod prelude;
 mod real_main;
-//pub mod secp256k1;
+pub mod secp256k1;
 pub mod util;
