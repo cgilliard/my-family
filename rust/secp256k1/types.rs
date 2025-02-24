@@ -140,6 +140,15 @@ impl Copy for RecoverableSignature {}
 pub struct AggSigPartialSignature([u8; 32]);
 impl Copy for AggSigPartialSignature {}
 
+impl AggSigPartialSignature {
+	pub fn as_mut_ptr(&mut self) -> *mut Self {
+		&mut self.0 as *mut u8 as *mut Self
+	}
+	pub fn as_ptr(&self) -> *const Self {
+		self.0.as_ptr() as *const Self
+	}
+}
+
 impl Signature {
 	/// Create a new (zeroed) signature usable for the FFI interface
 	pub fn new() -> Signature {

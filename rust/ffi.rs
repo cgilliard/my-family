@@ -150,7 +150,7 @@ extern "C" {
 	pub fn secp256k1_aggsig_context_create(
 		cx: *const Context,
 		pks: *const PublicKey,
-		n_pks: u64,
+		n_pks: usize,
 		seed32: *const u8,
 	) -> *mut AggSigContext;
 
@@ -159,16 +159,16 @@ extern "C" {
 	pub fn secp256k1_aggsig_generate_nonce(
 		cx: *const Context,
 		aggctx: *mut AggSigContext,
-		index: u64,
+		index: usize,
 	) -> i32;
 
 	pub fn secp256k1_aggsig_partial_sign(
 		cx: *const Context,
 		aggctx: *mut AggSigContext,
 		sig: *mut AggSigPartialSignature,
-		msghash32: *const u8,
-		seckey32: *const u8,
-		index: u64,
+		msghash32: *const Message,
+		seckey32: *const SecretKey,
+		index: usize,
 	) -> i32;
 
 	pub fn secp256k1_aggsig_combine_signatures(
@@ -176,15 +176,15 @@ extern "C" {
 		aggctx: *mut AggSigContext,
 		sig64: *mut Signature,
 		partial: *const AggSigPartialSignature,
-		index: u64,
+		index: usize,
 	) -> i32;
 
 	pub fn secp256k1_aggsig_build_scratch_and_verify(
 		cx: *const Context,
 		sig64: *const Signature,
-		msg32: *const u8,
+		msg32: *const Message,
 		pks: *const PublicKey,
-		n_pubkeys: u64,
+		n_pubkeys: usize,
 	) -> i32;
 
 	// AGGSIG (single sig or single-signer Schnorr)

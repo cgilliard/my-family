@@ -26,6 +26,7 @@ define_enum_with_strings!(ErrorKind {
 	CorruptedData,
 	IllegalArgument,
 	CapacityExceeded,
+	PartialSigFailure,
 	ThreadCreate,
 	ThreadJoin,
 	InvalidSignature,

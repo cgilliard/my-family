@@ -340,16 +340,24 @@ pub struct AggSigContext {
 	aggsig_ctx: *mut crate::secp256k1::types::AggSigContext,
 }
 
-/*
-
 impl AggSigContext {
 	/// Creates new aggsig context with a new random seed
-	pub fn new(secp: &Secp256k1, pubkeys: &Vec<PublicKey>) -> AggSigContext {
+	pub fn new(
+		secp: &Secp256k1,
+		pubkeys_vec: &Vec<PublicKey>,
+		rand: *mut u8,
+	) -> Result<AggSigContext, Error> {
 		let mut seed = [0u8; 32];
-		thread_rng().fill(&mut seed);
-		let pubkeys: Vec<*const ffi::PublicKey> = pubkeys.into_iter().map(|p| p.as_ptr()).collect();
-		let pubkeys = &pubkeys[..];
-		unsafe {
+		unsafe { cpsrng_rand_bytes_ctx(rand, &mut seed as *mut u8, 32) };
+		let mut pubkeys: Vec<*const PublicKey> = Vec::new();
+		for pubkey in pubkeys_vec {
+			match pubkeys.push(pubkey.as_ptr()) {
+				Ok(_) => {}
+				Err(e) => return Err(e),
+			}
+		}
+
+		Ok(unsafe {
 			AggSigContext {
 				ctx: secp.ctx,
 				aggsig_ctx: ffi::secp256k1_aggsig_context_create(
@@ -359,7 +367,7 @@ impl AggSigContext {
 					seed.as_ptr(),
 				),
 			}
-		}
+		})
 	}
 
 	/// Generate a nonce pair for a single signature part in an aggregated signature
@@ -388,7 +396,7 @@ impl AggSigContext {
 		seckey: SecretKey,
 		index: usize,
 	) -> Result<AggSigPartialSignature, Error> {
-		let mut retsig = AggSigPartialSignature::from(ffi::AggSigPartialSignature::new());
+		let mut retsig = AggSigPartialSignature::new();
 		let retval = unsafe {
 			ffi::secp256k1_aggsig_partial_sign(
 				self.ctx,
@@ -400,7 +408,7 @@ impl AggSigContext {
 			)
 		};
 		if retval == 0 {
-			return Err(Error::PartialSigFailure);
+			return Err(err!(PartialSigFailure));
 		}
 		Ok(retsig)
 	}
@@ -413,21 +421,30 @@ impl AggSigContext {
 		&self,
 		partial_sigs: &Vec<AggSigPartialSignature>,
 	) -> Result<Signature, Error> {
-		let mut retsig = Signature::from(ffi::Signature::new());
-		let partial_sigs: Vec<*const ffi::AggSigPartialSignature> =
-			partial_sigs.into_iter().map(|p| p.as_ptr()).collect();
-		let partial_sigs = &partial_sigs[..];
-		let retval = unsafe {
-			ffi::secp256k1_aggsig_combine_signatures(
-				self.ctx,
-				self.aggsig_ctx,
-				retsig.as_mut_ptr(),
-				partial_sigs[0],
-				partial_sigs.len(),
-			)
-		};
-		if retval == 0 {
-			return Err(Error::PartialSigFailure);
+		let mut retsig = Signature::new();
+		let mut partial_sigs_vec: Vec<*const AggSigPartialSignature> = Vec::new();
+		for psig in partial_sigs {
+			match partial_sigs_vec.push(psig.as_ptr()) {
+				Ok(_) => {}
+				Err(e) => return Err(e),
+			}
+		}
+		if partial_sigs_vec.len() > 0 {
+			let partial_sigs = &partial_sigs_vec[0..partial_sigs_vec.len()];
+			let retval = unsafe {
+				ffi::secp256k1_aggsig_combine_signatures(
+					self.ctx,
+					self.aggsig_ctx,
+					retsig.as_mut_ptr(),
+					partial_sigs[0],
+					partial_sigs.len(),
+				)
+			};
+			if retval == 0 {
+				return Err(err!(PartialSigFailure));
+			}
+		} else {
+			return Err(err!(IllegalArgument));
 		}
 		Ok(retsig)
 	}
@@ -438,27 +455,35 @@ impl AggSigContext {
 	/// msg: message to verify
 	/// sig: combined signature
 	/// pks: public keys
-	pub fn verify(&self, sig: Signature, msg: Message, pks: &Vec<PublicKey>) -> bool {
-		let pks: Vec<*const ffi::PublicKey> = pks.into_iter().map(|p| p.as_ptr()).collect();
-		let pks = &pks[..];
-		let retval = unsafe {
-			ffi::secp256k1_aggsig_build_scratch_and_verify(
-				self.ctx,
-				sig.as_ptr(),
-				msg.as_ptr(),
-				pks[0],
-				pks.len(),
-			)
-		};
-		match retval {
-			0 => false,
-			1 => true,
-			_ => false,
+	pub fn verify(&self, sig: Signature, msg: Message, pks_vec: &Vec<PublicKey>) -> bool {
+		let mut pks: Vec<*const PublicKey> = Vec::new();
+		for pk in pks_vec {
+			match pks.push(pk.as_ptr()) {
+				Ok(_) => {}
+				Err(_) => return false,
+			}
+		}
+		if pks.len() > 0 {
+			let pks = &pks[0..pks.len()];
+			let retval = unsafe {
+				ffi::secp256k1_aggsig_build_scratch_and_verify(
+					self.ctx,
+					sig.as_ptr(),
+					msg.as_ptr(),
+					pks[0],
+					pks.len(),
+				)
+			};
+			match retval {
+				0 => false,
+				1 => true,
+				_ => false,
+			}
+		} else {
+			false
 		}
 	}
 }
-
-*/
 
 impl Drop for AggSigContext {
 	fn drop(&mut self) {
